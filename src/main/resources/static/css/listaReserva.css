@@ -1,0 +1,165 @@
+/* ===== GENERAL ===== */
+html, body {
+   height: 100%;
+   margin: 0;
+   display: flex;
+   flex-direction: column;
+ }
+
+ main {
+   flex: 1; 
+ }
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fff7fa;;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+.select-wrapper {
+  position: relative;
+  max-height: 45px;
+  overflow: hidden;
+}
+
+.select-wrapper select:focus {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* ===== Colores personalizados ===== */
+.text-pink {
+  color: #b3005e !important; /
+}
+
+.btn-pink {
+  background-color: #b3005e;
+  color: #fff;
+  border: none;
+  transition: background-color 0.3s;
+}
+
+.btn-pink:hover {
+  background-color: #c06d92;
+  color: #fff;
+}
+
+.btn-outline-pink {
+  border-color: #d4af37; 
+  color: #d4af37;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-pink:hover {
+  background-color: #d4af37;
+  color: #fff;
+}
+
+/* ===== Header y navbar ===== */
+header {
+  background-color: #b3005e;
+  border-bottom: 2px solid #f8cdda;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.navbar-brand {
+  color: #fff !important;
+  font-weight: 600;
+  font-size: 1.3rem;
+  letter-spacing: 0.5px;
+}
+
+.navbar-brand:hover {
+  color: #f8cdda !important;
+}
+
+.navbar-brand i {
+  color: #d4af37; 
+  font-size: 1.4rem;
+  margin-right: 6px;
+}
+
+.nav-link {
+   color: #fff !important;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #f8cdda !important;
+}
+
+.navbar-toggler {
+  border-color: #b3005e;
+}
+
+.navbar-toggler-icon {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(212,127,166,0.9)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* Filtro card */
+.filter-card {
+  background: var(--card-bg);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: var(--soft-shadow);
+}
+
+/* Table card */
+.table-card {
+  background: transparent;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table {
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-bg);
+}
+
+/* Table head */
+.table-head {
+  background: linear-gradient(90deg, var(--pink), var(--pink-dark));
+  color: #fff;
+}
+.table-head th {
+  border: 0;
+  vertical-align: middle;
+  font-weight: 600;
+}
+
+/* Table rows */
+.table tbody tr:hover {
+  background: #fff0f6;
+}
+
+/* Form controls */
+.form-select, .form-control {
+  border-radius: 10px;
+  border: 1px solid #e6d3df;
+}
+
+/* ===== Footer ===== */
+footer {
+  background-color: #b3005e;
+  color: #fff !important;
+  font-weight: 500;
+}
+
+/* ====== RESPONSIVE ====== */
+@media (max-width: 768px) {
+    .navbar-brand {
+        font-size: 1.2rem;
+    }
+
+    .btn-pink {
+        font-size: 0.9rem;
+    }
+
+    table th, table td {
+        font-size: 0.85rem;
+    }
+}

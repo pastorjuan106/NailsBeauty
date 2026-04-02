@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nails Beauty | Inicio</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/index.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== HEADER / NAVBAR ===== -->
+<header class="shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <i class="bi bi-flower1"></i> Nails Beauty
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#servicios">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/contacto/form}">Contáctanos</a>
+                    </li>
+
+                    <!-- Si NO hay usuario logeado -->
+                    <li class="nav-item ms-3" th:if="${usuarioLogeado == null}">
+                        <a th:href="@{/login}" class="btn btn-outline-pink btn-sm me-2">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+                        </a>
+                        <a th:href="@{/register}" class="btn btn-pink btn-sm">
+                            <i class="bi bi-person-plus me-1"></i> Registrarse
+                        </a>
+                    </li>
+
+                    <!-- Si SÍ hay usuario logeado -->
+                    <li class="nav-item dropdown" th:if="${usuarioLogeado != null}">
+                        <a class="dropdown-toggle nav-link" href="#" data-bs-toggle="dropdown">
+                            <span th:text="'Hola, ' + ${usuarioLogeado.nombre}"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li th:if="${usuarioLogeado.rol.name() == 'ADMIN'}">
+                                <a class="dropdown-item" th:href="@{/admin/agenda/dashboard}">Dashboard</a>
+                            </li>
+                            <li><a class="dropdown-item" th:href="@{/perfil}">Mi Perfil</a></li>
+                            <li><a class="dropdown-item" th:href="@{/reservas}">Mis Reservas</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" th:href="@{/logout}">Cerrar sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- ===== BANNER ROTATIVO ===== -->
+<section id="banner" class="mb-0">
+    <div id="bannerCarousel" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img th:src="@{/img/banner1.jpg}" class="d-block w-100 banner-img" alt="Spa 1">
+            </div>
+            <div class="carousel-item">
+                <img th:src="@{/img/banner2.jpg}" class="d-block w-100 banner-img" alt="Spa 2">
+            </div>
+            <div class="carousel-item">
+                <img th:src="@{/img/banner3.jpg}" class="d-block w-100 banner-img" alt="Spa 3">
+            </div>
+        </div>
+
+        <button class="carousel-control-prev" type="button" data-bs-target="#bannerCarousel" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon"></span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#bannerCarousel" data-bs-slide="next">
+            <span class="carousel-control-next-icon"></span>
+        </button>
+    </div>
+</section>
+
+<!-- ===== TEXTO DE PRESENTACIÓN ===== -->
+<section class="presentacion text-center py-5">
+    <div class="container">
+        <h1 class="fw-bold mb-3">Bienvenida a Nails Beauty</h1>
+        <p class="lead text-muted">
+            Descubre el lugar donde la belleza y el bienestar se unen. 
+            En Nails Beauty te ofrecemos manicure, pedicure y tratamientos 
+            diseñados para realzar tu estilo y cuidar tus manos.
+        </p>
+
+        <a th:if="${usuarioLogeado != null}" th:href="@{/reservas/form}" class="btn btn-primary mt-3">Reservar ahora</a>
+        <a th:if="${usuarioLogeado == null}" th:href="@{/login}" class="btn btn-primary mt-3">Inicia sesión para reservar</a>
+    </div>
+</section>
+
+<!-- ===== SERVICIOS ===== -->
+<main class="container my-5" id="servicios">
+  <h2 class="text-center mb-4">Nuestros Servicios</h2>
+
+  <div class="carousel-wrapper position-relative">
+
+    <!-- Botón anterior -->
+    <button class="carousel-btn prev-btn">
+      <i class="bi bi-chevron-left"></i>
+    </button>
+
+    <!-- Contenedor del carrusel -->
+    <div class="carousel-container">
+      <div class="carousel-track">
+        <div class="card servicio-card" th:each="servicio : ${servicios}">
+          <img th:src="${servicio.imagenUrl}" alt="Servicio" class="card-img-top" />
+          <div class="card-body text-center d-flex flex-column justify-content-between">
+            <div>
+              <h5 th:text="${servicio.nombreServicio}" class="card-title fw-bold text-pink"></h5>
+              <p th:text="${servicio.descripcion}" class="card-text text-muted small"></p>
+            </div>
+            <div>
+              <p class="fw-bold text-dark mb-3" th:text="'S/ ' + ${servicio.precio}"></p>
+
+              <button th:if="${usuarioLogeado == null}" class="btn btn-pink btn-sm" disabled>
+                Reservar (Inicia sesión)
+              </button>
+
+              <a th:if="${usuarioLogeado != null}"
+                 th:href="@{'/reservas/form?idServicio=' + ${servicio.id}}"
+                 class="btn btn-pink btn-sm">
+                Reservar
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón siguiente -->
+    <button class="carousel-btn next-btn">
+      <i class="bi bi-chevron-right"></i>
+    </button>
+  </div>
+</main>
+
+
+<!-- ===== FOOTER ===== -->
+<footer class="text-center py-3 mt-5 border-top">
+    <small>© 2025 Nails Beauty - Todos los derechos reservados</small>
+</footer>
+<script src="/js/index.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
+

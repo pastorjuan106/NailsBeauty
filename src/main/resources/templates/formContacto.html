@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nails Beauty | Contacto</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/contact.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- ===== HEADER / NAVBAR ===== -->
+<header class="shadow-sm sticky-top">
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+                <i class="bi bi-flower1"></i> Nails Beauty
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/}">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{'/' + '#servicios'}">Servicios</a>
+                    </li>
+                    <li class="nav-item">
+						<a class="nav-link" th:href="@{/contacto/form}">Contáctanos</a>
+                    </li>
+
+                    <!-- Si NO hay usuario logeado -->
+                    <li class="nav-item ms-3" th:if="${usuarioLogeado == null}">
+                        <a th:href="@{/login}" class="btn btn-outline-pink btn-sm me-2">
+                            <i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
+                        </a>
+                        <a th:href="@{/register}" class="btn btn-pink btn-sm">
+                            <i class="bi bi-person-plus me-1"></i> Registrarse
+                        </a>
+                    </li>
+
+                    <!-- Si SÍ hay usuario logeado -->
+                    <li class="nav-item dropdown" th:if="${usuarioLogeado != null}">
+                        <a class="dropdown-toggle nav-link" href="#" data-bs-toggle="dropdown">
+                            <span th:text="'Hola, ' + ${usuarioLogeado.nombre}"></span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li th:if="${usuarioLogeado.rol.name() == 'ADMIN'}">
+                                <a class="dropdown-item" th:href="@{/admin/agenda/dashboard}">Dashboard</a>
+                            </li>
+                            <li><a class="dropdown-item" th:href="@{/perfil}">Mi Perfil</a></li>
+                            <li><a class="dropdown-item" th:href="@{/reservas}">Mis Reservas</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" th:href="@{/logout}">Cerrar sesión</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<!-- ===== SECCIÓN CONTACTO ===== -->
+<section class="contacto-section py-5">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h1 class="fw-bold text-pink">Contáctanos</h1>
+      <p class="text-muted">
+        ¿Tienes dudas, sugerencias o deseas agendar una cita especial?<br>
+        Escríbenos y te responderemos lo antes posible.
+      </p>
+    </div>
+
+    <div class="row g-4 align-items-stretch">
+      <!-- INFORMACIÓN -->
+      <div class="col-lg-5">
+        <div class="contact-info p-4 rounded shadow-sm bg-light h-100">
+          <h5 class="fw-semibold mb-3 text-pink">Información de contacto</h5>
+          <p><i class="bi bi-geo-alt-fill text-pink me-2"></i> Av. Samuel Alcázar 318, Rímac - Perú</p>
+          <p><i class="bi bi-telephone-fill text-pink me-2"></i> +51 999 888 777</p>
+          <p><i class="bi bi-envelope-fill text-pink me-2"></i> nailsbeauty@gmail.com</p>
+
+          <hr>
+          <h6 class="fw-semibold mb-3">Síguenos</h6>
+          <div class="d-flex gap-3">
+            <a href="https://www.instagram.com/high._glamour/" class="text-pink fs-4"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="text-pink fs-4"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="text-pink fs-4"><i class="bi bi-tiktok"></i></a>
+          </div>
+        </div>
+      </div>
+
+      <!-- FORMULARIO -->
+      <div class="col-lg-7">
+        <form th:action="@{/contacto/save}" th:object="${contacto}" method="post"
+              class="contact-form p-4 rounded shadow-sm bg-white">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nombre completo</label>
+            <input type="text" class="form-control" th:field="*{nombre}" placeholder="Ej. Ana Pérez" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Correo electrónico</label>
+            <input type="email" class="form-control" th:field="*{correo}" placeholder="Ej. ana@email.com" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Teléfono</label>
+            <input type="text" class="form-control" th:field="*{telefono}" placeholder="Ej. +51 987 654 321" required>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Asunto</label>
+            <input type="text" class="form-control" th:field="*{asunto}" placeholder="Ej. Cita para manicure">
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Mensaje</label>
+            <textarea class="form-control" rows="5" th:field="*{mensaje}" placeholder="Escribe tu mensaje aquí..." required></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-pink px-4 py-2 rounded-pill shadow-sm w-100">
+            <i class="bi bi-send-fill me-1"></i> Enviar mensaje
+          </button>
+
+          <div th:if="${success}" class="alert alert-success mt-3 text-center" th:text="${success}"></div>
+          <div th:if="${error}" class="alert alert-danger mt-3 text-center" th:text="${error}"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer class="text-center py-2 mt-5 border-top">
+    <small>© 2025 Nails Beauty - Todos los derechos reservados</small>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
