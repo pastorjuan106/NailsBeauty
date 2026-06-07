@@ -171,19 +171,20 @@ public class AdminFacturaController {
     }
 
     @GetMapping("/exportar-csv")
-    public ResponseEntity<String> exportarCsv() {
+    public ResponseEntity<byte[]> exportarCsv() {
         List<FacturaEntity> facturas = facturaService.getAll();
 
-        StringBuilder csv = new StringBuilder();
-        csv.append("N° Comprobante,Fecha,Cliente,Correo,Servicio,Precio,Descuento,IGV,Total,Método de Pago,Estado\n");
+        String BOM = "\uFEFF";
+        StringBuilder csv = new StringBuilder(BOM);
+        csv.append("N° Comprobante;Fecha;Cliente;Correo;Servicio;Precio;Descuento;IGV;Total;Método de Pago;Estado\n");
 
         for (FacturaEntity f : facturas) {
-            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%.2f,%.2f,%.2f,%.2f,\"%s\",\"%s\"\n",
-                    f.getNumeroComprobante(),
+            csv.append(String.format("\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";%.2f;%.2f;%.2f;%.2f;\"%s\";\"%s\"\n",
+                    escape(f.getNumeroComprobante()),
                     f.getFechaEmision() != null ? f.getFechaEmision().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "",
-                    f.getClienteNombre(),
-                    f.getClienteCorreo(),
-                    f.getServicioNombre(),
+                    escape(f.getClienteNombre()),
+                    escape(f.getClienteCorreo()),
+                    escape(f.getServicioNombre()),
                     f.getPrecioServicio() != null ? f.getPrecioServicio() : BigDecimal.ZERO,
                     f.getDescuento() != null ? f.getDescuento() : BigDecimal.ZERO,
                     f.getIgv() != null ? f.getIgv() : BigDecimal.ZERO,
@@ -192,9 +193,16 @@ public class AdminFacturaController {
                     f.getEstado() != null ? f.getEstado().getValor() : ""));
         }
 
+        byte[] utf8 = csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=facturas.csv")
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(csv.toString());
+                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+                .body(utf8);
+    }
+
+    private String escape(String value) {
+        if (value == null) return "";
+        return value.replace("\"", "\"\"");
     }
 }

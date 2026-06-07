@@ -102,11 +102,12 @@ public class AdminReservaController {
     }
 
     @GetMapping("/exportar-csv")
-    public ResponseEntity<String> exportarCsv() {
+    public ResponseEntity<byte[]> exportarCsv() {
         List<ReservaEntity> reservas = reservaService.getAll();
 
-        StringBuilder csv = new StringBuilder();
-        csv.append("ID Reserva,Cliente,Servicio,Fecha,Hora,Estado,Observación,Fecha Registro\n");
+        String BOM = "\uFEFF";
+        StringBuilder csv = new StringBuilder(BOM);
+        csv.append("ID Reserva;Cliente;Servicio;Fecha;Hora;Estado;Observación;Fecha Registro\n");
 
         DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -119,16 +120,30 @@ public class AdminReservaController {
             String fecha = r.getFechaReserva() != null ? r.getFechaReserva().format(dateFormatter) : "";
             String hora = r.getHorario() != null ? r.getHorario().getHoraInicio().toString() : "";
             String estado = r.getEstado() != null ? r.getEstado().name() : "";
-            String observacion = r.getObservacion() != null ? r.getObservacion().replace(",", ";") : "";
+            String observacion = r.getObservacion() != null ? r.getObservacion().replace(";", ",") : "";
             String fechaRegistro = r.getFechaRegistro() != null ? r.getFechaRegistro().format(dateTimeFormatter) : "";
 
-            csv.append(String.format("%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
-                    r.getId(), cliente, servicio, fecha, hora, estado, observacion, fechaRegistro));
+            csv.append(String.format("%d;\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\";\"%s\"\n",
+                    r.getId(),
+                    escape(cliente),
+                    escape(servicio),
+                    fecha,
+                    hora,
+                    estado,
+                    escape(observacion),
+                    fechaRegistro));
         }
+
+        byte[] utf8 = csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=reservas.csv")
-                .contentType(MediaType.TEXT_PLAIN)
-                .body(csv.toString());
+                .contentType(MediaType.parseMediaType("text/csv; charset=UTF-8"))
+                .body(utf8);
+    }
+
+    private String escape(String value) {
+        if (value == null) return "";
+        return value.replace("\"", "\"\"");
     }
 }
