@@ -6,9 +6,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import pe.nailsbeauty.entity.ServicioEntity;
-import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.service.ServicioService;
 
 import java.util.List;
@@ -20,34 +18,24 @@ public class AdminServicioController {
     @Autowired
     private ServicioService servicioService;
 
-    // Lista de servicios
     @GetMapping
-    public String getAll(Model model, HttpSession session) {
-    	UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String getAll(Model model) {
         List<ServicioEntity> servicios = servicioService.getAll();
         model.addAttribute("servicios", servicios);
-        model.addAttribute("usuarioLogeado", usuario);
-        return  "admin/servicios/lista";
+        return "admin/servicios/lista";
     }
 
-    // Formulario para crear un nuevo servicio
     @GetMapping("/form")
-    public String register(Model model, HttpSession session) {
-    	UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String register(Model model) {
         model.addAttribute("servicio", new ServicioEntity());
-        model.addAttribute("usuarioLogeado", usuario);
-        return  "admin/servicios/form";
+        return "admin/servicios/form";
     }
 
-    // Formulario para editar un servicio existente
     @GetMapping("/form/{id}")
-    public String update(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes, HttpSession session) {
-    	UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String update(@PathVariable Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             ServicioEntity servicio = servicioService.getById(id);
             model.addAttribute("servicio", servicio);
-            model.addAttribute("usuarioLogeado", usuario);
-            
             return "admin/servicios/form";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", "Servicio no encontrado");
@@ -55,10 +43,9 @@ public class AdminServicioController {
         }
     }
 
-    // Guardar un servicio nuevo o actualizado
     @PostMapping("/guardar")
     public String save(@ModelAttribute("servicio") ServicioEntity servicio,
-                                  RedirectAttributes redirectAttributes) {
+                       RedirectAttributes redirectAttributes) {
         try {
             if (servicio.getId() == null) {
                 servicioService.add(servicio);
@@ -73,7 +60,6 @@ public class AdminServicioController {
         return "redirect:/admin/servicios";
     }
 
-    // Eliminar un servicio
     @PostMapping("/eliminar/{id}")
     public String delete(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
         try {

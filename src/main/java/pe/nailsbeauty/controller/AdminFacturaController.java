@@ -1,6 +1,5 @@
 package pe.nailsbeauty.controller;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -13,17 +12,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import pe.nailsbeauty.entity.EstadoFactura;
 import pe.nailsbeauty.entity.FacturaEntity;
 import pe.nailsbeauty.entity.MetodoPago;
-import pe.nailsbeauty.entity.ReservaEntity;
-import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.service.EmailService;
 import pe.nailsbeauty.service.FacturaService;
 import pe.nailsbeauty.service.PdfService;
-import pe.nailsbeauty.service.ReservaService;
-import pe.nailsbeauty.service.ServicioService;
 
 @Controller
 @RequestMapping("/admin/facturas")
@@ -38,16 +32,9 @@ public class AdminFacturaController {
     @Autowired
     private EmailService emailService;
 
-    @Autowired
-    private ReservaService reservaService;
-
-    @Autowired
-    private ServicioService servicioService;
-
     @GetMapping
-    public String getAll(Model model, HttpSession session,
+    public String getAll(Model model,
                         @RequestParam(value = "busqueda", required = false) String busqueda) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
         List<FacturaEntity> facturas;
 
         if (busqueda != null && !busqueda.trim().isEmpty()) {
@@ -58,7 +45,6 @@ public class AdminFacturaController {
         }
 
         model.addAttribute("facturas", facturas);
-        model.addAttribute("usuarioLogeado", usuario);
         model.addAttribute("totalFacturasPagadas", facturaService.contarFacturasPagadas());
         model.addAttribute("totalIngresos", facturaService.sumarTotalFacturasPagadas());
 
@@ -66,23 +52,19 @@ public class AdminFacturaController {
     }
 
     @GetMapping("/form")
-    public String createForm(Model model, HttpSession session) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String createForm(Model model) {
         model.addAttribute("factura", new FacturaEntity());
         model.addAttribute("metodosPago", MetodoPago.values());
-        model.addAttribute("usuarioLogeado", usuario);
         return "admin/facturas/form";
     }
 
     @GetMapping("/form/{id}")
     public String editForm(@PathVariable Integer id, Model model,
-                           RedirectAttributes redirectAttributes, HttpSession session) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+                           RedirectAttributes redirectAttributes) {
         try {
             FacturaEntity factura = facturaService.getById(id);
             model.addAttribute("factura", factura);
             model.addAttribute("metodosPago", MetodoPago.values());
-            model.addAttribute("usuarioLogeado", usuario);
             return "admin/facturas/form";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", "Factura no encontrada");
@@ -112,7 +94,7 @@ public class AdminFacturaController {
     }
 
     @GetMapping("/{id}/pdf")
-    public ResponseEntity<byte[]>下载Pdf(@PathVariable Integer id) {
+    public ResponseEntity<byte[]> descargarPdf(@PathVariable Integer id) {
         try {
             FacturaEntity factura = facturaService.getById(id);
             byte[] pdfBytes = pdfService.generarFacturaPdf(factura);
@@ -144,12 +126,10 @@ public class AdminFacturaController {
 
     @GetMapping("/{id}/detalle")
     public String detalle(@PathVariable Integer id, Model model,
-                          RedirectAttributes redirectAttributes, HttpSession session) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+                          RedirectAttributes redirectAttributes) {
         try {
             FacturaEntity factura = facturaService.getById(id);
             model.addAttribute("factura", factura);
-            model.addAttribute("usuarioLogeado", usuario);
             return "admin/facturas/detalle";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", "Factura no encontrada");

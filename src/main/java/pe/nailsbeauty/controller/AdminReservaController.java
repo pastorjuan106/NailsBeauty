@@ -14,7 +14,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import pe.nailsbeauty.entity.*;
 import pe.nailsbeauty.service.FacturaService;
 import pe.nailsbeauty.service.ReservaService;
@@ -30,13 +29,10 @@ public class AdminReservaController {
     private FacturaService facturaService;
 
     @GetMapping
-    public String getAll(Model model, HttpSession session) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String getAll(Model model) {
         List<ReservaEntity> reservas = reservaService.getAll();
         model.addAttribute("reservas", reservas);
         model.addAttribute("estadosReserva", ReservaEntity.EstadoReserva.values());
-        model.addAttribute("usuarioLogeado", usuario);
-
         return "admin/reservas/adminListaReservas";
     }
 

@@ -11,7 +11,6 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.service.UsuarioService;
 
@@ -23,9 +22,8 @@ public class AdminUsuarioController {
     private UsuarioService usuarioService;
 
     @GetMapping
-    public String getAll(Model model, HttpSession session,
+    public String getAll(Model model,
                         @RequestParam(value = "busqueda", required = false) String busqueda) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
         List<UsuarioEntity> usuarios;
 
         if (busqueda != null && !busqueda.trim().isEmpty()) {
@@ -36,20 +34,17 @@ public class AdminUsuarioController {
         }
 
         model.addAttribute("usuarios", usuarios);
-        model.addAttribute("usuarioLogeado", usuario);
         return "admin/usuarios/lista";
     }
 
     @GetMapping("/form/{id}")
     public String editForm(@PathVariable Long id, Model model,
-                           RedirectAttributes redirectAttributes, HttpSession session) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+                           RedirectAttributes redirectAttributes) {
         try {
             UsuarioEntity usuarioEdit = usuarioService.getById(id);
             model.addAttribute("usuarioEdit", usuarioEdit);
             model.addAttribute("roles", UsuarioEntity.RolUsuario.values());
             model.addAttribute("estados", UsuarioEntity.EstadoUsuario.values());
-            model.addAttribute("usuarioLogeado", usuario);
             return "admin/usuarios/form";
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", "Usuario no encontrado");

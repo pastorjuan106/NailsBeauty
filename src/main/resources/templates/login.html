@@ -32,7 +32,8 @@
         </form>
 
         <!-- Mensajes -->
-        <div th:if="${error}" class="alert alert-danger mt-3 text-center" th:text="${error}"></div>
+        <div th:if="${param.error}" class="alert alert-danger mt-3 text-center">Correo o contraseña incorrectos</div>
+        <div th:if="${param.logout}" class="alert alert-success mt-3 text-center">Sesión cerrada correctamente</div>
         <div th:if="${success}" class="alert alert-success mt-3 text-center" th:text="${success}"></div>
 
         <div class="text-center mt-4">

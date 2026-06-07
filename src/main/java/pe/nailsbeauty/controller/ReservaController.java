@@ -10,12 +10,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import pe.nailsbeauty.entity.HorarioEntity;
 import pe.nailsbeauty.entity.ReservaEntity;
 import pe.nailsbeauty.entity.ServicioEntity;
@@ -23,6 +24,7 @@ import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.service.HorarioService;
 import pe.nailsbeauty.service.ReservaService;
 import pe.nailsbeauty.service.ServicioService;
+import pe.nailsbeauty.service.UsuarioService;
 
 @Controller
 @RequestMapping("/reservas")
@@ -34,16 +36,20 @@ public class ReservaController {
     @Autowired
     private ServicioService servicioService;
 
+    @Autowired
+    private HorarioService horarioService;
+
+    @Autowired
+    private UsuarioService usuarioService;
+
     @GetMapping
     public String getAll(
-            HttpSession session,
             Model model,
             @RequestParam(required = false) Integer servicio,
             @RequestParam(required = false) Integer mes,
             @RequestParam(required = false) Integer anio
     ) {
-        UsuarioEntity user = (UsuarioEntity) session.getAttribute("usuarioLogeado");
-        if (user == null) return "redirect:/login";
+        UsuarioEntity user = getUsuarioActual();
 
         List<ReservaEntity> reservas = reservaService.getByUsuario(user.getId());
 
@@ -89,25 +95,20 @@ public class ReservaController {
         model.addAttribute("filtroServicio", servicio);
         model.addAttribute("filtroMes", mes);
         model.addAttribute("filtroAnio", anio);
-        model.addAttribute("usuarioLogeado", user);
 
         return "reservas/listaReservas";
     }
 
-
-
     @GetMapping("/form")
     public String getForm(@RequestParam(name = "idServicio", required = false) Integer idServicio,
-                          Model model, HttpSession session) {
+                          Model model) {
 
-        UsuarioEntity user = (UsuarioEntity) session.getAttribute("usuarioLogeado");
-        if (user == null) return "redirect:/login";
+        UsuarioEntity user = getUsuarioActual();
 
         ReservaEntity reservation = new ReservaEntity();
         reservation.setUsuario(user);
         reservation.setHorario(new HorarioEntity());
 
-        
         if (idServicio != null) {
             ServicioEntity servicioSeleccionado = servicioService.getById(idServicio);
             reservation.setServicio(servicioSeleccionado);
@@ -119,7 +120,6 @@ public class ReservaController {
         model.addAttribute("reserva", reservation);
         model.addAttribute("services", services);
         model.addAttribute("horarios", horarios);
-        model.addAttribute("usuarioLogeado", user);
 
         return "reservas/formReservas";
     }
@@ -132,12 +132,10 @@ public class ReservaController {
         List<HorarioEntity> horariosActivos = horarioService.getActivos();
         List<ReservaEntity> reservasEnFecha = reservaService.getByFecha(fecha);
 
-        // Extrae los IDs de los horarios ocupados
         Set<Integer> horariosOcupados = reservasEnFecha.stream()
                 .map(r -> r.getHorario().getId())
                 .collect(Collectors.toSet());
 
-        // Creamos una lista con el estado de cada horario
         List<Map<String, Object>> resultado = new ArrayList<>();
 
         for (HorarioEntity h : horariosActivos) {
@@ -151,18 +149,12 @@ public class ReservaController {
 
         return resultado;
     }
-    
-    @Autowired
-    private HorarioService horarioService;
-
 
     @PostMapping("/save")
     public String add(@ModelAttribute("reserva") ReservaEntity reserva,
-                      HttpSession session,
                       RedirectAttributes redirectAttributes) {
 
-        UsuarioEntity user = (UsuarioEntity) session.getAttribute("usuarioLogeado");
-        if (user == null) return "redirect:/login";
+        UsuarioEntity user = getUsuarioActual();
 
         try {
             if (reserva.getFechaReserva().isBefore(LocalDate.now())) {
@@ -182,12 +174,10 @@ public class ReservaController {
         return "redirect:/reservas";
     }
 
-    
     @PostMapping("/cancel/{id}")
-    public String cancel(@PathVariable Integer id, HttpSession session,
+    public String cancel(@PathVariable Integer id,
                          RedirectAttributes redirectAttributes) {
-        UsuarioEntity user = (UsuarioEntity) session.getAttribute("usuarioLogeado");
-        if (user == null) return "redirect:/login";
+        UsuarioEntity user = getUsuarioActual();
 
         try {
             ReservaEntity reserva = reservaService.getById(id);
@@ -202,5 +192,12 @@ public class ReservaController {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
         return "redirect:/reservas";
+    }
+
+    private UsuarioEntity getUsuarioActual() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String correo = auth.getName();
+        return usuarioService.findByCorreo(correo)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 }

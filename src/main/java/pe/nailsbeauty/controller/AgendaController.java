@@ -1,7 +1,6 @@
 package pe.nailsbeauty.controller;
 
 import pe.nailsbeauty.entity.ReservaEntity;
-import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.entity.ReservaEntity.EstadoReserva;
 import pe.nailsbeauty.service.ContactoService;
 import pe.nailsbeauty.service.FacturaService;
@@ -12,9 +11,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import jakarta.servlet.http.HttpSession;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -32,6 +28,7 @@ public class AgendaController {
     private FacturaService facturaService;
     @Autowired
     private UsuarioService usuarioService;
+
     @GetMapping
     public String mostrarAgenda() {
         return "admin/dashboard"; 
@@ -68,12 +65,10 @@ public class AgendaController {
             }
         }
         return eventos;
-        
     }
     
     @GetMapping("/dashboard")
-    public String dashboard(Model model, HttpSession session, RedirectAttributes redirectAttributes) {
-        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String dashboard(Model model) {
         int totalReservasMes = reservaService.contarReservasMesActual();
         int reservasPendientes = reservaService.contarReservasPorEstado(ReservaEntity.EstadoReserva.PENDIENTE);
         int mensajesContactos = contactoService.contarMensajesTotales();
@@ -87,9 +82,6 @@ public class AgendaController {
         model.addAttribute("totalIngresos", totalIngresos);
         model.addAttribute("totalFacturasPagadas", totalFacturasPagadas);
         model.addAttribute("totalUsuarios", totalUsuarios);
-        model.addAttribute("usuarioLogeado", usuario);
         return "admin/dashboard";
-    }	
-
-    
+    }
 }

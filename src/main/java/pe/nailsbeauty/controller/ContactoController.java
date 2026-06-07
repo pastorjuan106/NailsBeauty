@@ -13,9 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
 import pe.nailsbeauty.entity.ContactoEntity;
-import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.service.ContactoService;
 
 @Controller
@@ -26,35 +24,25 @@ public class ContactoController {
     private final ContactoService contactoService;
     
     @GetMapping
-    public String getAll(Model model, HttpSession session) {
-    	UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String getAll(Model model) {
         List<ContactoEntity> contactos = contactoService.getAll();
         model.addAttribute("contactos", contactos);
-        model.addAttribute("usuarioLogeado", usuario);
         return "admin/contactos/adminListaContactos";
     }
 
     @GetMapping("/form")
-    public String mostrarFormularioContacto(Model model, HttpSession session) {
-        UsuarioEntity user = (UsuarioEntity) session.getAttribute("usuarioLogeado");
-        if (user == null) return "redirect:/login";
-
+    public String mostrarFormularioContacto(Model model) {
         model.addAttribute("contacto", new ContactoEntity());
-        model.addAttribute("usuarioLogeado", user);
         return "formContacto";
     }
 
     @PostMapping("/save")
     public String registrarContacto(@ModelAttribute("contacto") ContactoEntity contacto, 
-                                    Model model, HttpSession session) {
-        UsuarioEntity user = (UsuarioEntity) session.getAttribute("usuarioLogeado");
-        if (user == null) return "redirect:/login";
-
+                                    Model model) {
         contactoService.guardar(contacto);
 
         model.addAttribute("success", "Tu mensaje ha sido enviado correctamente. ¡Gracias por contactarnos!");
         model.addAttribute("contacto", new ContactoEntity());
-        model.addAttribute("usuarioLogeado", user);
         return "formContacto";
     }
 
