@@ -118,7 +118,7 @@ public class AdminReservaController {
             String servicio = r.getServicio() != null ? r.getServicio().getNombreServicio() : "";
             String fecha = r.getFechaReserva() != null ? r.getFechaReserva().format(dateFormatter) : "";
             String hora = r.getHorario() != null ? r.getHorario().getHoraInicio().toString() : "";
-            String estado = r.getEstado() != null ? r.getEstado().getValor() : "";
+            String estado = r.getEstado() != null ? r.getEstado().name() : "";
             String observacion = r.getObservacion() != null ? r.getObservacion().replace(",", ";") : "";
             String fechaRegistro = r.getFechaRegistro() != null ? r.getFechaRegistro().format(dateTimeFormatter) : "";
 
