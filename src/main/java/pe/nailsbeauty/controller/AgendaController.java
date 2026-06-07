@@ -4,7 +4,9 @@ import pe.nailsbeauty.entity.ReservaEntity;
 import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.entity.ReservaEntity.EstadoReserva;
 import pe.nailsbeauty.service.ContactoService;
+import pe.nailsbeauty.service.FacturaService;
 import pe.nailsbeauty.service.ReservaService;
+import pe.nailsbeauty.service.UsuarioService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
@@ -14,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.*;
 
@@ -25,6 +28,10 @@ public class AgendaController {
     private ReservaService reservaService;
     @Autowired
     private ContactoService contactoService;
+    @Autowired
+    private FacturaService facturaService;
+    @Autowired
+    private UsuarioService usuarioService;
     @GetMapping
     public String mostrarAgenda() {
         return "admin/dashboard"; 
@@ -70,10 +77,16 @@ public class AgendaController {
         int totalReservasMes = reservaService.contarReservasMesActual();
         int reservasPendientes = reservaService.contarReservasPorEstado(ReservaEntity.EstadoReserva.PENDIENTE);
         int mensajesContactos = contactoService.contarMensajesTotales();
+        BigDecimal totalIngresos = facturaService.sumarTotalFacturasPagadas();
+        long totalFacturasPagadas = facturaService.contarFacturasPagadas();
+        long totalUsuarios = usuarioService.getAll().size();
 
         model.addAttribute("totalReservasMes", totalReservasMes);
         model.addAttribute("reservasPendientes", reservasPendientes);
         model.addAttribute("mensajesContactos", mensajesContactos);
+        model.addAttribute("totalIngresos", totalIngresos);
+        model.addAttribute("totalFacturasPagadas", totalFacturasPagadas);
+        model.addAttribute("totalUsuarios", totalUsuarios);
         model.addAttribute("usuarioLogeado", usuario);
         return "admin/dashboard";
     }	

@@ -75,14 +75,10 @@
 		<div class="row g-4">
 			<!-- Sidebar lateral -->
 			<div class="col-md-3" id="sidebar">
-				<h2 class="mb-4">Gestión</h2>
-				<div class="d-grid gap-2">
-					<a th:href="@{/admin/servicios}" class="btn btn-primary w-100">Servicios</a>
-					<a th:href="@{/admin/reservas}" class="btn btn-primary w-100">Reservas</a>
-					<a th:href="@{/contacto}" class="btn btn-primary w-100">Mensajes</a>
-					<a th:href="@{/admin/facturas}" class="btn btn-primary w-100">
-						<i class="bi bi-receipt me-1"></i> Facturas
-					</a>
+				<div class="card border-0 shadow-sm sidebar">
+					<div class="card-body p-3">
+						<div th:replace="~{fragments/admin-sidebar :: adminSidebar(activePage='dashboard')}"></div>
+					</div>
 				</div>
 			</div>
 
@@ -90,27 +86,69 @@
 			<div class="col-md-9">
 				<!-- Tarjetas rápidas -->
 				<div class="row mb-4">
-					<div class="col-md-4">
-						<div class="card dashboard-card">
-							<div class="card-body">
-								<h5>Total Reservas del Mes</h5>
-								<p th:text="${totalReservasMes}" class="fs-3 fw-bold"></p>
+					<div class="col-md-4 mb-3">
+						<div class="card dashboard-card border-0 shadow-sm">
+							<div class="card-body text-center">
+								<div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex p-3 mb-2">
+									<i class="bi bi-calendar-check text-primary" style="font-size: 28px;"></i>
+								</div>
+								<h5 class="text-muted mb-1">Reservas del Mes</h5>
+								<p th:text="${totalReservasMes}" class="fs-2 fw-bold text-primary mb-0"></p>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-4">
-						<div class="card dashboard-card">
-							<div class="card-body">
-								<h5>Reservas Pendientes</h5>
-								<p th:text="${reservasPendientes}" class="fs-3 fw-bold"></p>
+					<div class="col-md-4 mb-3">
+						<div class="card dashboard-card border-0 shadow-sm">
+							<div class="card-body text-center">
+								<div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex p-3 mb-2">
+									<i class="bi bi-hourglass-split text-warning" style="font-size: 28px;"></i>
+								</div>
+								<h5 class="text-muted mb-1">Pendientes</h5>
+								<p th:text="${reservasPendientes}" class="fs-2 fw-bold text-warning mb-0"></p>
 							</div>
 						</div>
 					</div>
-					<div class="col-md-4">
-						<div class="card dashboard-card">
-							<div class="card-body">
-								<h5>Mensajes de Contáctanos</h5>
-								<p th:text="${mensajesContactos}" class="fs-3 fw-bold"></p>
+					<div class="col-md-4 mb-3">
+						<div class="card dashboard-card border-0 shadow-sm">
+							<div class="card-body text-center">
+								<div class="rounded-circle bg-info bg-opacity-10 d-inline-flex p-3 mb-2">
+									<i class="bi bi-envelope text-info" style="font-size: 28px;"></i>
+								</div>
+								<h5 class="text-muted mb-1">Mensajes</h5>
+								<p th:text="${mensajesContactos}" class="fs-2 fw-bold text-info mb-0"></p>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 mb-3">
+						<div class="card dashboard-card border-0 shadow-sm">
+							<div class="card-body text-center">
+								<div class="rounded-circle bg-success bg-opacity-10 d-inline-flex p-3 mb-2">
+									<i class="bi bi-cash-stack text-success" style="font-size: 28px;"></i>
+								</div>
+								<h5 class="text-muted mb-1">Ingresos Totales</h5>
+								<p th:text="${totalIngresos != null} ? ${'S/. ' + T(java.lang.String).format('%.2f', totalIngresos)} : 'S/. 0.00'" class="fs-2 fw-bold text-success mb-0"></p>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 mb-3">
+						<div class="card dashboard-card border-0 shadow-sm">
+							<div class="card-body text-center">
+								<div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex p-3 mb-2">
+									<i class="bi bi-receipt text-danger" style="font-size: 28px;"></i>
+								</div>
+								<h5 class="text-muted mb-1">Facturas Emitidas</h5>
+								<p th:text="${totalFacturasPagadas}" class="fs-2 fw-bold text-danger mb-0"></p>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-4 mb-3">
+						<div class="card dashboard-card border-0 shadow-sm">
+							<div class="card-body text-center">
+								<div class="rounded-circle bg-purple bg-opacity-10 d-inline-flex p-3 mb-2" style="background-color: rgba(111, 66, 193, 0.1) !important;">
+									<i class="bi bi-people" style="font-size: 28px; color: #6f42c1;"></i>
+								</div>
+								<h5 class="text-muted mb-1">Total Usuarios</h5>
+								<p th:text="${totalUsuarios}" class="fs-2 fw-bold mb-0" style="color: #6f42c1;"></p>
 							</div>
 						</div>
 					</div>

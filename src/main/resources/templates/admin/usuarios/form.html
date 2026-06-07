@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Editar Usuario | Nails Beauty</title>
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+	<style>
+		:root {
+			--pink: #d63384;
+			--pink-dark: #b3005e;
+			--light-pink: #fff7fa;
+		}
+
+		body {
+			font-family: 'Poppins', sans-serif;
+			background-color: var(--light-pink);
+		}
+
+		.navbar {
+			background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+		}
+
+		.navbar-brand,
+		.nav-link {
+			color: white !important;
+		}
+
+		.text-pink {
+			color: var(--pink) !important;
+		}
+
+		.btn-pink {
+			background-color: var(--pink);
+			color: white;
+			border: none;
+		}
+
+		.btn-pink:hover {
+			background-color: var(--pink-dark);
+			color: white;
+		}
+
+		.form-card {
+			background: white;
+			border-radius: 15px;
+			padding: 30px;
+			box-shadow: 0 2px 15px rgba(0, 0, 0, 0.08);
+		}
+
+		.form-label {
+			font-weight: 500;
+			color: #333;
+		}
+
+		.form-control:focus,
+		.form-select:focus {
+			border-color: var(--pink);
+			box-shadow: 0 0 0 0.2rem rgba(214, 51, 132, 0.15);
+		}
+
+		.sidebar .list-group-item.active {
+			background-color: var(--pink);
+			border-color: var(--pink);
+			color: white;
+		}
+
+		.sidebar .list-group-item:hover:not(.active) {
+			background-color: var(--light-pink);
+		}
+
+		.user-info-card {
+			background: var(--light-pink);
+			border-left: 4px solid var(--pink);
+			border-radius: 0 8px 8px 0;
+			padding: 20px;
+			margin-bottom: 20px;
+		}
+	</style>
+</head>
+
+<body>
+
+	<!-- ===== HEADER / NAVBAR ===== -->
+	<header class="shadow-sm sticky-top">
+		<nav class="navbar navbar-expand-lg">
+			<div class="container">
+				<a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+					<i class="bi bi-flower1"></i> Nails Beauty
+				</a>
+
+				<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+					<span class="navbar-toggler-icon"></span>
+				</button>
+
+				<div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+					<ul class="navbar-nav align-items-center">
+						<li class="nav-item">
+							<a class="nav-link" th:href="@{/}">Inicio</a>
+						</li>
+						<li class="nav-item">
+							<a class="nav-link" th:href="@{/admin/agenda/dashboard}">Dashboard</a>
+						</li>
+
+						<li class="nav-item dropdown" th:if="${usuarioLogeado != null}">
+							<a class="dropdown-toggle nav-link" href="#" data-bs-toggle="dropdown">
+								<span th:text="'Hola, ' + ${usuarioLogeado.nombre}"></span>
+							</a>
+							<ul class="dropdown-menu dropdown-menu-end">
+								<li><a class="dropdown-item" th:href="@{/perfil}">Mi Perfil</a></li>
+								<li>
+									<hr class="dropdown-divider">
+								</li>
+								<li><a class="dropdown-item text-danger" th:href="@{/logout}">Cerrar sesión</a></li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</nav>
+	</header>
+
+	<!-- ===== CONTENIDO ===== -->
+	<main class="container my-5">
+		<div class="row">
+			<!-- Sidebar -->
+			<div class="col-lg-3 mb-4">
+				<div class="card border-0 shadow-sm sidebar">
+					<div class="card-body p-3">
+						<div th:replace="~{fragments/admin-sidebar :: adminSidebar(activePage='usuarios')}"></div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Contenido principal -->
+			<div class="col-lg-9">
+				<div class="text-center mb-4">
+					<h1 class="fw-bold text-pink mb-1">Editar Usuario</h1>
+					<p class="text-muted mb-0">Modifica el rol y estado del usuario.</p>
+				</div>
+
+				<!-- Mensajes flash -->
+				<div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+					<span th:text="${success}"></span>
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+				<div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+					<span th:text="${error}"></span>
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+
+				<!-- Información del usuario -->
+				<div class="user-info-card">
+					<div class="row">
+						<div class="col-md-6">
+							<h6 class="text-pink mb-1"><i class="bi bi-person me-2"></i>Información del Usuario</h6>
+							<p class="mb-0" th:text="${usuarioEdit.nombre + ' ' + usuarioEdit.apellidoPaterno + ' ' + usuarioEdit.apellidoMaterno}"></p>
+						</div>
+						<div class="col-md-6">
+							<p class="mb-0"><strong>Correo:</strong> <span th:text="${usuarioEdit.correo}"></span></p>
+							<p class="mb-0"><strong>Celular:</strong> <span th:text="${usuarioEdit.celular != null} ? ${usuarioEdit.celular} : '-'"></span></p>
+							<p class="mb-0"><strong>Registro:</strong> <span th:text="${usuarioEdit.fechaRegistro != null} ? ${T(java.time.format.DateTimeFormatter).ofPattern('dd/MM/yyyy HH:mm').format(usuarioEdit.fechaRegistro)} : '-'"></span></p>
+						</div>
+					</div>
+				</div>
+
+				<div class="form-card">
+					<form th:action="@{/admin/usuarios/guardar}" method="post">
+						<input type="hidden" name="id" th:value="${usuarioEdit.id}">
+
+						<div class="row mb-3">
+							<div class="col-md-6">
+								<label class="form-label">Rol del Usuario *</label>
+								<select name="rol" class="form-select" required>
+									<option th:each="rol : ${roles}"
+										th:value="${rol}"
+										th:text="${rol.name() == 'ADMIN' ? 'Administrador' : 'Cliente'}"
+										th:selected="${usuarioEdit.rol == rol}">
+									</option>
+								</select>
+							</div>
+							<div class="col-md-6">
+								<label class="form-label">Estado *</label>
+								<select name="estado" class="form-select" required>
+									<option th:each="estado : ${estados}"
+										th:value="${estado}"
+										th:text="${estado.name() == 'ACTIVO' ? 'Activo' : 'Inactivo'}"
+										th:selected="${usuarioEdit.estado == estado}">
+									</option>
+								</select>
+							</div>
+						</div>
+
+						<!-- Botones -->
+						<div class="d-flex justify-content-between mt-4">
+							<a th:href="@{/admin/usuarios}" class="btn btn-outline-secondary">
+								<i class="bi bi-arrow-left me-1"></i> Cancelar
+							</a>
+							<button type="submit" class="btn btn-pink px-4">
+								<i class="bi bi-check-lg me-1"></i> Guardar Cambios
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<!-- ===== FOOTER ===== -->
+	<footer class="text-center py-3 border-top">
+		<small>© 2026 Nails Beauty - Todos los derechos reservados</small>
+	</footer>
+
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

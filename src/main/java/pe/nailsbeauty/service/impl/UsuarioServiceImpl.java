@@ -115,5 +115,18 @@ public class UsuarioServiceImpl implements UsuarioService {
         }).orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
+    @Override
+    public List<UsuarioEntity> filtrar(String busqueda) {
+        return repository.filtrarUsuarios(busqueda);
+    }
+
+    @Override
+    public void actualizarRolYEstado(Long id, pe.nailsbeauty.entity.RolUsuario rol, pe.nailsbeauty.entity.EstadoUsuario estado) {
+        UsuarioEntity usuario = getById(id);
+        usuario.setRol(rol);
+        usuario.setEstado(estado);
+        repository.save(usuario);
+    }
+
 
 }
