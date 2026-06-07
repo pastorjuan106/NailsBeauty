@@ -1,0 +1,200 @@
+package pe.nailsbeauty.controller;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import jakarta.servlet.http.HttpSession;
+import pe.nailsbeauty.entity.EstadoFactura;
+import pe.nailsbeauty.entity.FacturaEntity;
+import pe.nailsbeauty.entity.MetodoPago;
+import pe.nailsbeauty.entity.ReservaEntity;
+import pe.nailsbeauty.entity.UsuarioEntity;
+import pe.nailsbeauty.service.EmailService;
+import pe.nailsbeauty.service.FacturaService;
+import pe.nailsbeauty.service.PdfService;
+import pe.nailsbeauty.service.ReservaService;
+import pe.nailsbeauty.service.ServicioService;
+
+@Controller
+@RequestMapping("/admin/facturas")
+public class AdminFacturaController {
+
+    @Autowired
+    private FacturaService facturaService;
+
+    @Autowired
+    private PdfService pdfService;
+
+    @Autowired
+    private EmailService emailService;
+
+    @Autowired
+    private ReservaService reservaService;
+
+    @Autowired
+    private ServicioService servicioService;
+
+    @GetMapping
+    public String getAll(Model model, HttpSession session,
+                        @RequestParam(value = "busqueda", required = false) String busqueda) {
+        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+        List<FacturaEntity> facturas;
+
+        if (busqueda != null && !busqueda.trim().isEmpty()) {
+            facturas = facturaService.filtrar(busqueda);
+            model.addAttribute("busqueda", busqueda);
+        } else {
+            facturas = facturaService.getAll();
+        }
+
+        model.addAttribute("facturas", facturas);
+        model.addAttribute("usuarioLogeado", usuario);
+        model.addAttribute("totalFacturasPagadas", facturaService.contarFacturasPagadas());
+        model.addAttribute("totalIngresos", facturaService.sumarTotalFacturasPagadas());
+
+        return "admin/facturas/lista";
+    }
+
+    @GetMapping("/form")
+    public String createForm(Model model, HttpSession session) {
+        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+        model.addAttribute("factura", new FacturaEntity());
+        model.addAttribute("metodosPago", MetodoPago.values());
+        model.addAttribute("usuarioLogeado", usuario);
+        return "admin/facturas/form";
+    }
+
+    @GetMapping("/form/{id}")
+    public String editForm(@PathVariable Integer id, Model model,
+                           RedirectAttributes redirectAttributes, HttpSession session) {
+        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+        try {
+            FacturaEntity factura = facturaService.getById(id);
+            model.addAttribute("factura", factura);
+            model.addAttribute("metodosPago", MetodoPago.values());
+            model.addAttribute("usuarioLogeado", usuario);
+            return "admin/facturas/form";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Factura no encontrada");
+            return "redirect:/admin/facturas";
+        }
+    }
+
+    @PostMapping("/guardar")
+    public String save(@ModelAttribute("factura") FacturaEntity factura,
+                       @RequestParam(value = "reserva.id", required = false) Integer idReserva,
+                       RedirectAttributes redirectAttributes) {
+        try {
+            if (factura.getId() != null) {
+                facturaService.actualizar(factura.getId(), factura.getDescuento(),
+                        factura.getMetodoPago(), factura.getObservaciones());
+                redirectAttributes.addFlashAttribute("success", "Factura actualizada correctamente");
+            } else if (idReserva != null) {
+                FacturaEntity nuevaFactura = facturaService.crearDesdeReserva(idReserva);
+                facturaService.actualizar(nuevaFactura.getId(), factura.getDescuento(),
+                        factura.getMetodoPago(), factura.getObservaciones());
+                redirectAttributes.addFlashAttribute("success", "Factura generada correctamente");
+            }
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/facturas";
+    }
+
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]>下载Pdf(@PathVariable Integer id) {
+        try {
+            FacturaEntity factura = facturaService.getById(id);
+            byte[] pdfBytes = pdfService.generarFacturaPdf(factura);
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "attachment; filename=Factura_" + factura.getNumeroComprobante() + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .contentLength(pdfBytes.length)
+                    .body(pdfBytes);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/{id}/enviar-correo")
+    public String enviarCorreo(@PathVariable Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            FacturaEntity factura = facturaService.getById(id);
+            emailService.enviarFacturaPorCorreo(factura);
+            facturaService.actualizarEstado(id, EstadoFactura.PAGADA);
+            redirectAttributes.addFlashAttribute("success",
+                    "Factura enviada exitosamente a " + factura.getClienteCorreo());
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Error al enviar correo: " + e.getMessage());
+        }
+        return "redirect:/admin/facturas";
+    }
+
+    @GetMapping("/{id}/detalle")
+    public String detalle(@PathVariable Integer id, Model model,
+                          RedirectAttributes redirectAttributes, HttpSession session) {
+        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+        try {
+            FacturaEntity factura = facturaService.getById(id);
+            model.addAttribute("factura", factura);
+            model.addAttribute("usuarioLogeado", usuario);
+            return "admin/facturas/detalle";
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", "Factura no encontrada");
+            return "redirect:/admin/facturas";
+        }
+    }
+
+    @PostMapping("/{id}/cambiar-estado")
+    public String cambiarEstado(@PathVariable Integer id,
+                                @RequestParam("estado") EstadoFactura estado,
+                                RedirectAttributes redirectAttributes) {
+        try {
+            facturaService.actualizarEstado(id, estado);
+            redirectAttributes.addFlashAttribute("success", "Estado de factura actualizado");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/admin/facturas";
+    }
+
+    @GetMapping("/exportar-csv")
+    public ResponseEntity<String> exportarCsv() {
+        List<FacturaEntity> facturas = facturaService.getAll();
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("N° Comprobante,Fecha,Cliente,Correo,Servicio,Precio,Descuento,IGV,Total,Método de Pago,Estado\n");
+
+        for (FacturaEntity f : facturas) {
+            csv.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",%.2f,%.2f,%.2f,%.2f,\"%s\",\"%s\"\n",
+                    f.getNumeroComprobante(),
+                    f.getFechaEmision() != null ? f.getFechaEmision().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")) : "",
+                    f.getClienteNombre(),
+                    f.getClienteCorreo(),
+                    f.getServicioNombre(),
+                    f.getPrecioServicio() != null ? f.getPrecioServicio() : BigDecimal.ZERO,
+                    f.getDescuento() != null ? f.getDescuento() : BigDecimal.ZERO,
+                    f.getIgv() != null ? f.getIgv() : BigDecimal.ZERO,
+                    f.getTotalPagar() != null ? f.getTotalPagar() : BigDecimal.ZERO,
+                    f.getMetodoPago() != null ? f.getMetodoPago().getValor() : "",
+                    f.getEstado() != null ? f.getEstado().getValor() : ""));
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=facturas.csv")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(csv.toString());
+    }
+}

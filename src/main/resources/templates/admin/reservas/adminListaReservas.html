@@ -10,6 +10,40 @@
 	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 	<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 	<link rel="stylesheet" th:href="@{/css/listaReserva.css}">
+	<style>
+		:root {
+			--pink: #d63384;
+			--pink-dark: #b3005e;
+			--gold: #d4af37;
+			--light-pink: #fff7fa;
+		}
+
+		.text-pink {
+			color: var(--pink) !important;
+		}
+
+		.btn-pink {
+			background-color: var(--pink);
+			color: white;
+			border: none;
+		}
+
+		.btn-pink:hover {
+			background-color: var(--pink-dark);
+			color: white;
+		}
+
+		.table-head {
+			background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+			color: white;
+		}
+
+		.table-card {
+			background: white;
+			border-radius: 15px;
+			overflow: hidden;
+		}
+	</style>
 </head>
 
 <body>
@@ -32,33 +66,15 @@
 							<a class="nav-link" th:href="@{/}">Inicio</a>
 						</li>
 						<li class="nav-item">
-							<a class="nav-link" th:href="@{'/' + '#servicios'}">Servicios</a>
-						</li>
-						<li class="nav-item">
-							<a class="nav-link" th:href="@{/contacto/form}">Contáctanos</a>
+							<a class="nav-link" th:href="@{/admin/agenda/dashboard}">Dashboard</a>
 						</li>
 
-						<!-- Si NO hay usuario logeado -->
-						<li class="nav-item ms-3" th:if="${usuarioLogeado == null}">
-							<a th:href="@{/login}" class="btn btn-outline-pink btn-sm me-2">
-								<i class="bi bi-box-arrow-in-right me-1"></i> Iniciar sesión
-							</a>
-							<a th:href="@{/register}" class="btn btn-pink btn-sm">
-								<i class="bi bi-person-plus me-1"></i> Registrarse
-							</a>
-						</li>
-
-						<!-- Si SÍ hay usuario logeado -->
 						<li class="nav-item dropdown" th:if="${usuarioLogeado != null}">
 							<a class="dropdown-toggle nav-link" href="#" data-bs-toggle="dropdown">
 								<span th:text="'Hola, ' + ${usuarioLogeado.nombre}"></span>
 							</a>
 							<ul class="dropdown-menu dropdown-menu-end">
-								<li th:if="${usuarioLogeado.rol.name() == 'ADMIN'}">
-									<a class="dropdown-item" th:href="@{/admin/agenda/dashboard}">Dashboard</a>
-								</li>
 								<li><a class="dropdown-item" th:href="@{/perfil}">Mi Perfil</a></li>
-								<li><a class="dropdown-item" th:href="@{/reservas}">Mis Reservas</a></li>
 								<li>
 									<hr class="dropdown-divider">
 								</li>
@@ -73,65 +89,153 @@
 
 	<main class="container my-5">
 
-		<div class="text-center mb-4">
-			<h1 class="fw-bold text-pink">Reservas de Usuarios</h1>
-			<p class="text-muted">Administra todas las reservas registradas en el sistema.</p>
-		</div>
+		<!-- Sidebar + Content -->
+		<div class="row">
+			<!-- Sidebar -->
+			<div class="col-lg-3 mb-4">
+				<div class="card border-0 shadow-sm">
+					<div class="card-body p-3">
+						<h6 class="text-muted mb-3">Panel Admin</h6>
+						<div class="list-group list-group-flush">
+							<a th:href="@{/admin/agenda/dashboard}" class="list-group-item list-group-item-action">
+								<i class="bi bi-speedometer2 me-2"></i> Dashboard
+							</a>
+							<a th:href="@{/admin/servicios}" class="list-group-item list-group-item-action">
+								<i class="bi bi-scissors me-2"></i> Servicios
+							</a>
+							<a th:href="@{/admin/reservas}" class="list-group-item list-group-item-action active">
+								<i class="bi bi-calendar-check me-2"></i> Reservas
+							</a>
+							<a th:href="@{/contacto}" class="list-group-item list-group-item-action">
+								<i class="bi bi-envelope me-2"></i> Mensajes
+							</a>
+							<a th:href="@{/admin/facturas}" class="list-group-item list-group-item-action">
+								<i class="bi bi-receipt me-2"></i> Facturas
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
 
-		<!-- TABLA DE RESERVAS -->
-		<div class="table-responsive shadow-sm table-card">
-			<table class="table table-hover align-middle mb-0">
-				<thead class="table-head text-center">
-					<tr>
-						<th>ID</th>
-						<th>Usuario</th>
-						<th>Servicio</th>
-						<th>Fecha</th>
-						<th>Hora</th>
-						<th>Estado</th>
-						<th>Observación</th>
-						<th>Acciones</th>
-					</tr>
-				</thead>
-				<tbody class="text-center">
-					<tr th:each="reserva : ${reservas}">
-						<td th:text="${reserva.id}"></td>
-						<td th:text="${reserva.usuario.nombre}"></td>
-						<td th:text="${reserva.servicio.nombreServicio}"></td>
-						<td th:text="${#temporals.format(reserva.fechaReserva, 'dd/MM/yyyy')}"></td>
-						<td
-							th:text="${#temporals.format(reserva.horario.horaInicio, 'HH:mm')} + ' - ' + ${#temporals.format(reserva.horario.horaFin, 'HH:mm')}">
-						</td>
-						<td>
-							<form th:action="@{/admin/reservas/guardar}" method="post" class="d-inline">
-								<input type="hidden" name="id" th:value="${reserva.id}">
-								<select name="estado" class="form-select form-select-sm">
-									<option th:each="e : ${estadosReserva}" th:value="${e}" th:text="${e}"
-										th:selected="${reserva.estado == e}">
-									</option>
-								</select>
+			<!-- Contenido principal -->
+			<div class="col-lg-9">
+				<div class="text-center mb-4">
+					<h1 class="fw-bold text-pink">Reservas de Usuarios</h1>
+					<p class="text-muted">Administra todas las reservas registradas en el sistema.</p>
+				</div>
 
-							</form>
-						</td>
-						<td th:text="${reserva.observacion}"></td>
-						<td>
-							<form th:action="@{/admin/reservas/eliminar/{id}(id=${reserva.id})}" method="post"
-								class="d-inline">
-								<button type="submit" class="btn btn-sm btn-danger"
-									onclick="return confirm('¿Desea eliminar esta reserva?');">
-									<i class="bi bi-trash"></i>
-								</button>
-							</form>
-						</td>
-					</tr>
-				</tbody>
-			</table>
+				<!-- Mensajes flash -->
+				<div th:if="${success}" class="alert alert-success alert-dismissible fade show">
+					<span th:text="${success}"></span>
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+				<div th:if="${error}" class="alert alert-danger alert-dismissible fade show">
+					<span th:text="${error}"></span>
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+				<div th:if="${info}" class="alert alert-info alert-dismissible fade show">
+					<span th:text="${info}"></span>
+					<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+				</div>
+
+				<!-- Botón de exportación -->
+				<div class="text-end mb-3">
+					<a th:href="@{/admin/reservas/exportar-csv}" class="btn btn-sm btn-outline-success">
+						<i class="bi bi-download me-1"></i> Exportar CSV
+					</a>
+				</div>
+
+				<!-- TABLA DE RESERVAS -->
+				<div class="table-responsive shadow-sm table-card">
+					<table class="table table-hover align-middle mb-0">
+						<thead class="table-head text-center">
+							<tr>
+								<th>ID</th>
+								<th>Usuario</th>
+								<th>Servicio</th>
+								<th>Fecha</th>
+								<th>Hora</th>
+								<th>Estado</th>
+								<th>Observación</th>
+								<th>Acciones</th>
+							</tr>
+						</thead>
+						<tbody class="text-center">
+							<tr th:each="reserva : ${reservas}">
+								<td th:text="${reserva.id}"></td>
+								<td th:text="${reserva.usuario.nombre}"></td>
+								<td th:text="${reserva.servicio.nombreServicio}"></td>
+								<td th:text="${#temporals.format(reserva.fechaReserva, 'dd/MM/yyyy')}"></td>
+								<td
+									th:text="${#temporals.format(reserva.horario.horaInicio, 'HH:mm')} + ' - ' + ${#temporals.format(reserva.horario.horaFin, 'HH:mm')}">
+								</td>
+								<td>
+									<form th:action="@{/admin/reservas/guardar}" method="post" class="d-inline form-reserva">
+										<input type="hidden" name="id" th:value="${reserva.id}">
+										<input type="hidden" name="generarFactura" value="false" class="generar-factura-input">
+										<select name="estado" class="form-select form-select-sm estado-select"
+											th:data-reserva-id="${reserva.id}">
+											<option th:each="e : ${estadosReserva}" th:value="${e}" th:text="${e}"
+												th:selected="${reserva.estado == e}">
+											</option>
+										</select>
+									</form>
+								</td>
+								<td th:text="${reserva.observacion}"></td>
+								<td>
+									<form th:action="@{/admin/reservas/eliminar/{id}(id=${reserva.id})}" method="post"
+										class="d-inline">
+										<button type="submit" class="btn btn-sm btn-danger"
+											onclick="return confirm('¿Desea eliminar esta reserva?');">
+											<i class="bi bi-trash"></i>
+										</button>
+									</form>
+								</td>
+							</tr>
+							<tr th:if="${reservas.isEmpty()}">
+								<td colspan="8" class="text-muted py-4">
+									<i class="bi bi-inbox" style="font-size: 48px;"></i>
+									<p class="mt-2">No hay reservas registradas</p>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
 		</div>
 
 	</main>
 
+	<!-- Modal de Confirmación de Factura -->
+	<div class="modal fade" id="confirmarFacturaModal" tabindex="-1" aria-labelledby="confirmarFacturaModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content">
+				<div class="modal-header bg-pink text-white" style="background: linear-gradient(135deg, #d63384, #b3005e);">
+					<h5 class="modal-title" id="confirmarFacturaModalLabel">
+						<i class="bi bi-receipt me-2"></i>Generar Factura
+					</h5>
+					<button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body text-center py-4">
+					<i class="bi bi-question-circle text-pink" style="font-size: 64px;"></i>
+					<h5 class="mt-3">¿Desea generar la factura?</h5>
+					<p class="text-muted">Se creará un comprobante de venta para esta reserva.</p>
+					<p class="text-muted small">Si selecciona "No", solo se cambiará el estado de la reserva.</p>
+				</div>
+				<div class="modal-footer justify-content-center">
+					<button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" id="btnNoFactura">
+						<i class="bi bi-x-lg me-1"></i> No, solo cambiar estado
+					</button>
+					<button type="button" class="btn btn-pink" id="btnSiFactura">
+						<i class="bi bi-check-lg me-1"></i> Sí, generar factura
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<footer class="text-center py-3 border-top">
-		<small>© 2025 Nails Beauty - Todos los derechos reservados</small>
+		<small>© 2026 Nails Beauty - Todos los derechos reservados</small>
 	</footer>
 
 	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -139,10 +243,56 @@
 	<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 	<script>
 		$(document).ready(function () {
-			$('select.form-select').select2({
+			$('select.estado-select').select2({
 				width: '100%',
 				placeholder: 'Seleccionar...',
 				allowClear: true
+			});
+
+			var currentForm = null;
+			var currentSelect = null;
+			var previousValue = null;
+
+			$('select.estado-select').on('select2:selecting', function (e) {
+				previousValue = $(this).val();
+			});
+
+			$('select.estado-select').on('select2:select', function (e) {
+				var newValue = e.params.data.id;
+				currentSelect = $(this);
+				currentForm = $(this).closest('form');
+
+				if (newValue === 'ATENDIDA') {
+					$('#confirmarFacturaModal').modal('show');
+				} else {
+					currentForm.find('.generar-factura-input').val('false');
+					currentForm.submit();
+				}
+			});
+
+			$('#btnSiFactura').on('click', function () {
+				if (currentForm) {
+					currentForm.find('.generar-factura-input').val('true');
+					currentForm.submit();
+				}
+				$('#confirmarFacturaModal').modal('hide');
+			});
+
+			$('#btnNoFactura').on('click', function () {
+				if (currentForm) {
+					currentForm.find('.generar-factura-input').val('false');
+					currentForm.submit();
+				}
+				$('#confirmarFacturaModal').modal('hide');
+			});
+
+			$('#confirmarFacturaModal').on('hidden.bs.modal', function () {
+				if (previousValue && currentSelect) {
+					currentSelect.val(previousValue).trigger('change');
+				}
+				currentForm = null;
+				currentSelect = null;
+				previousValue = null;
 			});
 		});
 	</script>

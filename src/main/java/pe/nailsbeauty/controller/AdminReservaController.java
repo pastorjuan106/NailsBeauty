@@ -1,16 +1,22 @@
 package pe.nailsbeauty.controller;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
-import pe.nailsbeauty.entity.ReservaEntity;
-import pe.nailsbeauty.entity.UsuarioEntity;
+import pe.nailsbeauty.entity.*;
+import pe.nailsbeauty.service.FacturaService;
 import pe.nailsbeauty.service.ReservaService;
 
 @Controller
@@ -20,9 +26,12 @@ public class AdminReservaController {
     @Autowired
     private ReservaService reservaService;
 
+    @Autowired
+    private FacturaService facturaService;
+
     @GetMapping
-    public String getAll(Model model,  HttpSession session) {
-    	UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
+    public String getAll(Model model, HttpSession session) {
+        UsuarioEntity usuario = (UsuarioEntity) session.getAttribute("usuarioLogeado");
         List<ReservaEntity> reservas = reservaService.getAll();
         model.addAttribute("reservas", reservas);
         model.addAttribute("estadosReserva", ReservaEntity.EstadoReserva.values());
@@ -34,10 +43,47 @@ public class AdminReservaController {
     @PostMapping("/guardar")
     public String guardarEstado(@RequestParam("id") Integer id,
                                 @RequestParam("estado") ReservaEntity.EstadoReserva estado,
+                                @RequestParam(value = "generarFactura", required = false, defaultValue = "false") boolean generarFactura,
                                 RedirectAttributes redirectAttributes) {
         try {
             reservaService.updateEstado(id, estado);
-            redirectAttributes.addFlashAttribute("success", "Estado actualizado correctamente");
+
+            if (estado == ReservaEntity.EstadoReserva.ATENDIDA && generarFactura) {
+                if (!facturaService.existeFacturaPorReserva(id)) {
+                    ReservaEntity reserva = reservaService.getById(id);
+                    FacturaEntity factura = FacturaEntity.builder()
+                            .numeroComprobante(facturaService.generarNumeroComprobante())
+                            .reserva(reserva)
+                            .nombreComercial("Nails Beauty")
+                            .ruc("20512684759")
+                            .direccion("Av. Ejemplo 123, Lima")
+                            .clienteNombre(reserva.getUsuario().getNombre() + " " +
+                                    reserva.getUsuario().getApellidoPaterno() + " " +
+                                    reserva.getUsuario().getApellidoMaterno())
+                            .clienteCorreo(reserva.getUsuario().getCorreo())
+                            .servicioNombre(reserva.getServicio().getNombreServicio())
+                            .precioServicio(reserva.getServicio().getPrecio())
+                            .descuento(BigDecimal.ZERO)
+                            .igv(facturaService.calcularIgv(reserva.getServicio().getPrecio()))
+                            .totalPagar(facturaService.calcularTotal(
+                                    reserva.getServicio().getPrecio(),
+                                    BigDecimal.ZERO,
+                                    facturaService.calcularIgv(reserva.getServicio().getPrecio())))
+                            .metodoPago(MetodoPago.EFECTIVO)
+                            .estado(EstadoFactura.PENDIENTE_PAGO)
+                            .build();
+
+                    FacturaEntity facturaGuardada = facturaService.save(factura);
+                    redirectAttributes.addFlashAttribute("success",
+                            "Reserva atendida. Factura " + facturaGuardada.getNumeroComprobante() + " generada.");
+                    return "redirect:/admin/facturas/form/" + facturaGuardada.getId();
+                } else {
+                    redirectAttributes.addFlashAttribute("info",
+                            "Reserva atendida. Ya existe una factura para esta reserva.");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("success", "Estado actualizado correctamente");
+            }
         } catch (RuntimeException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
         }
@@ -54,4 +100,35 @@ public class AdminReservaController {
         }
         return "redirect:/admin/reservas";
     }
-}	
+
+    @GetMapping("/exportar-csv")
+    public ResponseEntity<String> exportarCsv() {
+        List<ReservaEntity> reservas = reservaService.getAll();
+
+        StringBuilder csv = new StringBuilder();
+        csv.append("ID Reserva,Cliente,Servicio,Fecha,Hora,Estado,Observación,Fecha Registro\n");
+
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+
+        for (ReservaEntity r : reservas) {
+            String cliente = r.getUsuario() != null
+                    ? r.getUsuario().getNombre() + " " + r.getUsuario().getApellidoPaterno()
+                    : "";
+            String servicio = r.getServicio() != null ? r.getServicio().getNombreServicio() : "";
+            String fecha = r.getFechaReserva() != null ? r.getFechaReserva().format(dateFormatter) : "";
+            String hora = r.getHorario() != null ? r.getHorario().getHoraInicio().toString() : "";
+            String estado = r.getEstado() != null ? r.getEstado().getValor() : "";
+            String observacion = r.getObservacion() != null ? r.getObservacion().replace(",", ";") : "";
+            String fechaRegistro = r.getFechaRegistro() != null ? r.getFechaRegistro().format(dateTimeFormatter) : "";
+
+            csv.append(String.format("%d,\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n",
+                    r.getId(), cliente, servicio, fecha, hora, estado, observacion, fechaRegistro));
+        }
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=reservas.csv")
+                .contentType(MediaType.TEXT_PLAIN)
+                .body(csv.toString());
+    }
+}
