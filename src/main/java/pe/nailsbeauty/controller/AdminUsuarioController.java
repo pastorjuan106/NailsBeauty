@@ -12,8 +12,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.servlet.http.HttpSession;
-import pe.nailsbeauty.entity.EstadoUsuario;
-import pe.nailsbeauty.entity.RolUsuario;
 import pe.nailsbeauty.entity.UsuarioEntity;
 import pe.nailsbeauty.service.UsuarioService;
 
@@ -49,8 +47,8 @@ public class AdminUsuarioController {
         try {
             UsuarioEntity usuarioEdit = usuarioService.getById(id);
             model.addAttribute("usuarioEdit", usuarioEdit);
-            model.addAttribute("roles", RolUsuario.values());
-            model.addAttribute("estados", EstadoUsuario.values());
+            model.addAttribute("roles", UsuarioEntity.RolUsuario.values());
+            model.addAttribute("estados", UsuarioEntity.EstadoUsuario.values());
             model.addAttribute("usuarioLogeado", usuario);
             return "admin/usuarios/form";
         } catch (RuntimeException e) {
@@ -61,8 +59,8 @@ public class AdminUsuarioController {
 
     @PostMapping("/guardar")
     public String guardar(@RequestParam("id") Long id,
-                          @RequestParam("rol") RolUsuario rol,
-                          @RequestParam("estado") EstadoUsuario estado,
+                          @RequestParam("rol") UsuarioEntity.RolUsuario rol,
+                          @RequestParam("estado") UsuarioEntity.EstadoUsuario estado,
                           RedirectAttributes redirectAttributes) {
         try {
             usuarioService.actualizarRolYEstado(id, rol, estado);

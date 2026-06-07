@@ -3,8 +3,6 @@ package pe.nailsbeauty.service;
 import java.util.List;
 import java.util.Optional;
 
-import pe.nailsbeauty.entity.EstadoUsuario;
-import pe.nailsbeauty.entity.RolUsuario;
 import pe.nailsbeauty.entity.UsuarioEntity;
 
 public interface UsuarioService {
@@ -18,5 +16,5 @@ public interface UsuarioService {
     UsuarioEntity actualizarPerfil(Long id, UsuarioEntity usuarioForm, 
             String claveActual, String nuevaClave, String confirmarClave);
     List<UsuarioEntity> filtrar(String busqueda);
-    void actualizarRolYEstado(Long id, RolUsuario rol, EstadoUsuario estado);
+    void actualizarRolYEstado(Long id, UsuarioEntity.RolUsuario rol, UsuarioEntity.EstadoUsuario estado);
 }

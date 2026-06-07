@@ -121,7 +121,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public void actualizarRolYEstado(Long id, pe.nailsbeauty.entity.RolUsuario rol, pe.nailsbeauty.entity.EstadoUsuario estado) {
+    public void actualizarRolYEstado(Long id, UsuarioEntity.RolUsuario rol, UsuarioEntity.EstadoUsuario estado) {
         UsuarioEntity usuario = getById(id);
         usuario.setRol(rol);
         usuario.setEstado(estado);
