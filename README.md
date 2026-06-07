@@ -7,7 +7,8 @@ Aplicación web para la gestión integral de un salón de manicure/pedicure. Per
 ## 👀 Vista Previa
 
 <img width="1903" height="957" alt="image" src="https://github.com/user-attachments/assets/35ecc67f-d008-4dcf-93bc-a6d7c1357f5c" />
-<img width="1912" height="958" alt="image" src="https://github.com/user-attachments/assets/f2eb1821-4ed2-4db2-8beb-611bbd2b99f0" />
+<img width="1907" height="964" alt="image" src="https://github.com/user-attachments/assets/f73e043f-27fc-42dc-8988-c7ca765f5b3a" />
+
 
 ---
 
